@@ -1,4 +1,5 @@
 import type React from "react"
+
 // Division Order Types
 export interface DivisionOrder {
   id: string
@@ -14,28 +15,18 @@ export interface DivisionOrder {
 }
 
 export interface ExtractedData {
-  wellNames: string[]
-  ownerNames: string[]
-  county: string
+  wellName: string
   operator: string
-  totalTractAcreage: number
-  averageRoyaltyRate: number
-  sectionBreakdowns: SectionBreakdown[]
-  allocationValid: boolean
-  confidenceScores: {
-    ownerNames: number
-    wellNames: number
-    county: number
-    totalTractAcreage: number
-    averageRoyaltyRate: number
-  }
-  tractSize?: ConfidenceField
-  royaltyInterest?: ConfidenceField
-  sectionNumber?: ConfidenceField
-  propertyDescription?: ConfidenceField
-  entity?: ConfidenceField
-  effectiveDate?: ConfidenceField
-  preparedDate?: ConfidenceField
+  county: string
+  royaltyInterest: number
+  tractAcres: number
+  ownerName: string
+  effectiveDate: string
+  confidence: number
+  rawData?: any
+  propertyDescription?: string
+  preparedDate?: string
+  additionalDetails?: Record<string, any>
 }
 
 export interface SectionBreakdown {
@@ -57,45 +48,6 @@ export interface Allocation {
   interestPercentage: number
   netAcres?: number
   royaltyAmount?: number
-}
-
-// Azure Document Intelligence Types
-export interface AzureDocumentField {
-  type: string
-  text: string
-  confidence: number
-  boundingBox?: number[]
-  page?: number
-}
-
-export interface AzureExtractionResult {
-  fields: AzureDocumentField[]
-  tables: any[]
-  pages: number
-  confidence: number
-  processingTime: number
-}
-
-// State and Company Types
-export interface State {
-  code: string
-  name: string
-  counties: string[]
-}
-
-export interface Company {
-  id: string
-  name: string
-  stateCode: string
-  county: string
-  wells: Well[]
-}
-
-export interface Well {
-  id: string
-  name: string
-  apiNumber?: string
-  location?: string
 }
 
 // Form Types
@@ -146,7 +98,6 @@ export interface ProcessingResult {
 }
 
 export interface DocumentProcessingOptions {
-  useAzureAI: boolean
   enhancedExtraction: boolean
   confidenceThreshold: number
 }
@@ -222,6 +173,21 @@ export interface CompanyFormProps {
   onCancel?: () => void
 }
 
+export interface Company {
+  id: string
+  name: string
+  stateCode: string
+  county: string
+  wells: Well[]
+}
+
+export interface Well {
+  id: string
+  name: string
+  apiNumber?: string
+  location?: string
+}
+
 export interface CompanyDisplayProps {
   company: Company
   onEdit?: () => void
@@ -250,20 +216,8 @@ export interface FileUploaderProps {
   onError?: (error: string) => void
 }
 
-export interface AiDocumentUploaderProps {
-  stateCode: string
-  stateName: string
-  companyId: string
-  companyName: string
-  onUploadComplete?: (result: ProcessingResult) => void
-}
-
 export interface DirectExtractionProps {
   file: File
-  stateCode: string
-  stateName: string
-  companyId: string
-  companyName: string
   onExtracted: (data: ExtractedData) => void
   onError: (error: string) => void
 }

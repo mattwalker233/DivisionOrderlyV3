@@ -1,16 +1,112 @@
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Search, FileSpreadsheet, Check } from "lucide-react"
 import Link from "next/link"
+import { stateData } from "@/lib/state-data"
+import { useState } from "react"
+import * as XLSX from 'xlsx';
+import { Checkbox } from "@/components/ui/checkbox"
+
+// Sample division order data for demonstration
+const divisionOrders = [
+  {
+    id: "DO-2024-001",
+    operator: "Devon Energy",
+    entity: "Blackrock Minerals LLC",
+    wellName: "Bobcat 23-1H",
+    propertyDescription: "Section 23, Block 4, 160 acres",
+    royaltyInterest: "0.125",
+    effectiveDate: "2024-01-15",
+    state: "TX",
+    status: "in_process"
+  },
+  {
+    id: "DO-2024-002",
+    operator: "Pioneer Natural Resources",
+    entity: "Crown Minerals Trust",
+    wellName: "Eagle Ford 14-2H",
+    propertyDescription: "Section 14, Block 2, 80 acres",
+    royaltyInterest: "0.1875",
+    effectiveDate: "2024-01-14",
+    state: "TX",
+    status: "in_pay"
+  },
+  {
+    id: "DO-2024-003",
+    operator: "Occidental",
+    entity: "Desert Holdings LLC",
+    wellName: "Permian Vista 5-3H",
+    propertyDescription: "Section 5, Block 3, 320 acres",
+    royaltyInterest: "0.25",
+    effectiveDate: "2024-01-13",
+    state: "NM",
+    status: "not_received"
+  },
+];
 
 export default function DashboardPage() {
+  const [selectedState, setSelectedState] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [orders, setOrders] = useState(divisionOrders);
+
+  // Filter orders based on state, search term, and status
+  const filteredOrders = orders
+    .filter(order => selectedState === "all" || order.state === selectedState)
+    .filter(order => selectedStatus === "all" || order.status === selectedStatus)
+    .filter(order => {
+      if (!searchTerm) return true;
+      const search = searchTerm.toLowerCase();
+      return (
+        order.operator.toLowerCase().includes(search) ||
+        order.entity.toLowerCase().includes(search) ||
+        order.wellName.toLowerCase().includes(search) ||
+        order.propertyDescription.toLowerCase().includes(search) ||
+        order.royaltyInterest.includes(search) ||
+        order.effectiveDate.includes(search)
+      );
+    });
+
+  const handleStatusChange = (orderId: string, newStatus: string) => {
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
+        order.id === orderId ? { ...order, status: newStatus } : order
+      )
+    );
+  };
+
+  const handleExportToExcel = () => {
+    // Prepare data for export
+    const exportData = filteredOrders.map(order => ({
+      'ID': order.id,
+      'Operator': order.operator,
+      'Entity': order.entity,
+      'Well/Property': order.wellName,
+      'Property Description': order.propertyDescription,
+      'Royalty Interest': order.royaltyInterest,
+      'Effective Date': order.effectiveDate,
+      'State': order.state
+    }));
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Division Orders');
+    
+    // Generate Excel file and trigger download
+    XLSX.writeFile(wb, `division_orders_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Button asChild>
-          <Link href="/upload">Upload Document</Link>
-        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -23,299 +119,158 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Processed This Month</CardDescription>
-            <CardTitle className="text-3xl">8</CardTitle>
+            <CardDescription>Active States</CardDescription>
+            <CardTitle className="text-3xl">{stateData.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Active Wells</CardDescription>
-            <CardTitle className="text-3xl">12</CardTitle>
+            <CardDescription>Total Companies</CardDescription>
+            <CardTitle className="text-3xl">
+              {stateData.reduce((total, state) => total + state.companies.length, 0)}
+            </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total Value</CardDescription>
-            <CardTitle className="text-3xl">$2.4M</CardTitle>
+            <CardDescription>Processing Time</CardDescription>
+            <CardTitle className="text-3xl">2.4s</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
-      {/* Recent Documents */}
+      {/* Division Orders Table with Tabs */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Documents</CardTitle>
-          <CardDescription>Your latest division order documents</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-medium">Division Order #{item}</h3>
-                  <p className="text-sm text-muted-foreground">Processed 2 days ago</p>
+          <div className="flex flex-col space-y-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <CardTitle>Division Orders</CardTitle>
+                <CardDescription>
+                  {selectedState === "all" 
+                    ? "All division orders across states" 
+                    : `Division orders for ${stateData.find(s => s.code === selectedState)?.name || selectedState}`}
+                </CardDescription>
+              </div>
+              <div className="flex gap-2 items-center">
+                <div className="relative w-full md:w-96">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search division orders..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
                 </div>
-                <Button variant="outline" size="sm">
-                  View Details
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleExportToExcel}
+                  title="Export to Excel"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
                 </Button>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4 mt-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-              <polyline points="10 9 9 9 8 9" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">254</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active States</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">9</div>
-            <p className="text-xs text-muted-foreground">All states active</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Companies</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">48</div>
-            <p className="text-xs text-muted-foreground">+3 new this week</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Processing Time</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2.4s</div>
-            <p className="text-xs text-muted-foreground">Average per document</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="all" className="mt-6">
-        <TabsList className="grid grid-cols-5 w-full max-w-[500px]">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="texas">Texas</TabsTrigger>
-          <TabsTrigger value="new-mexico">New Mexico</TabsTrigger>
-          <TabsTrigger value="oklahoma">Oklahoma</TabsTrigger>
-          <TabsTrigger value="recent">Recent</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="mt-6">
-          <div className="rounded-md border">
-            <div className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-4 font-medium text-sm">
-                <div>Document ID</div>
-                <div>Well Name</div>
-                <div>State</div>
-                <div>Company</div>
-                <div>Date</div>
-                <div>Actions</div>
-              </div>
             </div>
-            <div className="divide-y">
-              {[
-                {
-                  id: "DO-2024-001",
-                  well: "Bobcat 23-1H",
-                  state: "Texas",
-                  company: "Devon Energy",
-                  date: "2024-01-15",
-                },
-                {
-                  id: "DO-2024-002",
-                  well: "Permian 14-2H",
-                  state: "New Mexico",
-                  company: "Occidental",
-                  date: "2024-01-14",
-                },
-                {
-                  id: "DO-2024-003",
-                  well: "Eagle Ford 7-3H",
-                  state: "Texas",
-                  company: "EOG Resources",
-                  date: "2024-01-13",
-                },
-                {
-                  id: "DO-2024-004",
-                  well: "Delaware 9-4H",
-                  state: "New Mexico",
-                  company: "Chevron",
-                  date: "2024-01-12",
-                },
-                {
-                  id: "DO-2024-005",
-                  well: "SCOOP 12-5H",
-                  state: "Oklahoma",
-                  company: "Continental",
-                  date: "2024-01-11",
-                },
-              ].map((order) => (
-                <div key={order.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 hover:bg-muted/50">
-                  <div className="font-medium">{order.id}</div>
-                  <div>{order.well}</div>
-                  <div>{order.state}</div>
-                  <div>{order.company}</div>
-                  <div>{order.date}</div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-4 w-4"
-                      >
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-4 w-4"
-                      >
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                    </Button>
-                  </div>
-                </div>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant={selectedState === "all" ? "default" : "outline"}
+                onClick={() => setSelectedState("all")}
+                size="sm"
+              >
+                All States
+              </Button>
+              {stateData.map((state) => (
+                <Button
+                  key={state.code}
+                  variant={selectedState === state.code ? "default" : "outline"}
+                  onClick={() => setSelectedState(state.code)}
+                  size="sm"
+                >
+                  {state.name}
+                </Button>
               ))}
             </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="texas" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Texas Division Orders</CardTitle>
-              <CardDescription>All division orders from Texas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">3 division orders found for Texas</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="new-mexico" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>New Mexico Division Orders</CardTitle>
-              <CardDescription>All division orders from New Mexico</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">2 division orders found for New Mexico</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="oklahoma" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Oklahoma Division Orders</CardTitle>
-              <CardDescription>All division orders from Oklahoma</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">1 division order found for Oklahoma</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="recent" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Division Orders</CardTitle>
-              <CardDescription>Your most recently processed division orders</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Showing last 5 processed division orders</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="all" className="w-full" value={selectedStatus} onValueChange={setSelectedStatus}>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="in_process">In Process</TabsTrigger>
+              <TabsTrigger value="in_pay">In Pay</TabsTrigger>
+              <TabsTrigger value="not_received">Not Received</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all" className="mt-4">
+              <div className="rounded-md border">
+                <div className="p-4">
+                  <div className="grid grid-cols-8 gap-4 font-medium text-sm">
+                    <div>Status</div>
+                    <div>Operator</div>
+                    <div>Entity</div>
+                    <div>Well/Property</div>
+                    <div>Property Description</div>
+                    <div>Royalty Interest</div>
+                    <div>Effective Date</div>
+                    <div>Actions</div>
+                  </div>
+                </div>
+                <div className="divide-y">
+                  {filteredOrders.map((order) => (
+                    <div key={order.id} className="grid grid-cols-8 gap-4 p-4 hover:bg-muted/50">
+                      <div className="flex gap-2">
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                          className="text-sm border rounded px-2 py-1"
+                        >
+                          <option value="in_process">In Process</option>
+                          <option value="in_pay">In Pay</option>
+                          <option value="not_received">Not Received</option>
+                        </select>
+                      </div>
+                      <div>{order.operator}</div>
+                      <div>{order.entity}</div>
+                      <div>{order.wellName}</div>
+                      <div>{order.propertyDescription}</div>
+                      <div>{order.royaltyInterest}</div>
+                      <div>{order.effectiveDate}</div>
+                      <div>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/orders/${order.id}`}>View</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {filteredOrders.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No division orders found matching your criteria
+                    </div>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="in_process">
+              <div className="rounded-md border">
+                {/* Same table structure as "all" tab but filtered for in_process status */}
+                {/* ... */}
+              </div>
+            </TabsContent>
+            <TabsContent value="in_pay">
+              <div className="rounded-md border">
+                {/* Same table structure as "all" tab but filtered for in_pay status */}
+                {/* ... */}
+              </div>
+            </TabsContent>
+            <TabsContent value="not_received">
+              <div className="rounded-md border">
+                {/* Same table structure as "all" tab but filtered for not_received status */}
+                {/* ... */}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   )
 }

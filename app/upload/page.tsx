@@ -89,7 +89,7 @@ export default function UploadPage() {
         <CardHeader>
           <CardTitle>Document Upload</CardTitle>
           <CardDescription>
-            Upload a division order PDF to extract information using Azure Document Intelligence
+            Upload a division order PDF to extract information using Claude AI
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -193,7 +193,7 @@ export default function UploadPage() {
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <AlertDescription>
-              Make sure your Azure Document Intelligence credentials are configured in the environment variables.
+              Make sure your Anthropic API key is configured in the environment variables to enable Claude AI processing.
             </AlertDescription>
           </Alert>
         </CardContent>

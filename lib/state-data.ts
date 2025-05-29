@@ -1,94 +1,89 @@
-export interface StateData {
-  code: string
-  name: string
-  description: string
-  companies: Company[]
+export interface State {
+  code: string;
+  name: string;
+  description: string;
+  companies: string[];
 }
 
-export interface Company {
-  id: string
-  name: string
-  wells: Well[]
-}
-
-export interface Well {
-  id: string
-  name: string
-  location: string
-}
-
-// Sample state data for design purposes
-export const stateData: StateData[] = [
+export const stateData: State[] = [
   {
     code: "TX",
     name: "Texas",
-    description: "Manage division orders for Texas oil and gas properties",
-    companies: [
-      {
-        id: "tx-company-1",
-        name: "Permian Basin Energy",
-        wells: [
-          { id: "well-1", name: "Permian 1H", location: "Midland County" },
-          { id: "well-2", name: "Permian 2H", location: "Reeves County" },
-        ],
-      },
-      {
-        id: "tx-company-2",
-        name: "Texas Oil Partners",
-        wells: [{ id: "well-3", name: "Eagle Ford 1", location: "Karnes County" }],
-      },
-    ],
+    description: "Permian Basin & Eagle Ford Shale",
+    companies: ["Devon Energy", "Pioneer Natural Resources", "EOG Resources"]
   },
   {
     code: "NM",
     name: "New Mexico",
-    description: "Manage division orders for New Mexico oil and gas properties",
-    companies: [
-      {
-        id: "nm-company-1",
-        name: "Delaware Basin LLC",
-        wells: [{ id: "well-4", name: "Delaware 1H", location: "Lea County" }],
-      },
-    ],
+    description: "Delaware Basin & San Juan Basin",
+    companies: ["Occidental", "ConocoPhillips"]
   },
   {
     code: "OK",
     name: "Oklahoma",
-    description: "Manage division orders for Oklahoma oil and gas properties",
-    companies: [
-      {
-        id: "ok-company-1",
-        name: "SCOOP Energy",
-        wells: [{ id: "well-5", name: "SCOOP 1H", location: "Grady County" }],
-      },
-    ],
+    description: "SCOOP/STACK & Anadarko Basin",
+    companies: ["Continental Resources", "Marathon Oil"]
   },
-]
-
-// Required export functions
-export function getStateByCode(code: string): StateData | undefined {
-  return stateData.find((state) => state.code === code)
-}
-
-export function getCompanyById(companyId: string): Company | undefined {
-  for (const state of stateData) {
-    const company = state.companies.find((c) => c.id === companyId)
-    if (company) return company
+  {
+    code: "ND",
+    name: "North Dakota",
+    description: "Bakken Formation",
+    companies: ["Hess Corporation", "Whiting Petroleum"]
+  },
+  {
+    code: "LA",
+    name: "Louisiana",
+    description: "Haynesville Shale",
+    companies: ["Chesapeake Energy", "Comstock Resources"]
+  },
+  {
+    code: "PA",
+    name: "Pennsylvania",
+    description: "Marcellus Shale",
+    companies: ["EQT Corporation", "Range Resources"]
+  },
+  {
+    code: "OH",
+    name: "Ohio",
+    description: "Utica Shale & Point Pleasant Formation",
+    companies: ["Ascent Resources", "Gulfport Energy"]
+  },
+  {
+    code: "WV",
+    name: "West Virginia",
+    description: "Marcellus & Utica Shale",
+    companies: ["Antero Resources", "Southwestern Energy"]
+  },
+  {
+    code: "CO",
+    name: "Colorado",
+    description: "DJ Basin & Piceance Basin",
+    companies: ["PDC Energy", "Civitas Resources"]
+  },
+  {
+    code: "WY",
+    name: "Wyoming",
+    description: "Powder River & Green River Basins",
+    companies: ["Chesapeake Energy", "PureWest Energy"]
   }
-  return undefined
+];
+
+export function getStateByCode(code: string): State | undefined {
+  return stateData.find(state => state.code === code);
 }
 
 export function getStateNameByCode(code: string): string {
-  const state = getStateByCode(code)
-  return state ? state.name : code
+  const state = getStateByCode(code);
+  return state ? state.name : code;
 }
 
-// Additional helper functions
-export function getAllStates(): StateData[] {
-  return stateData
+export function getCompaniesByState(code: string): string[] {
+  const state = getStateByCode(code);
+  return state ? state.companies : [];
 }
 
-export function getCompaniesByState(stateCode: string): Company[] {
-  const state = getStateByCode(stateCode)
-  return state ? state.companies : []
+export function getCompanyById(stateCode: string, companyId: string): string | undefined {
+  const state = getStateByCode(stateCode);
+  if (!state) return undefined;
+  return state.companies[parseInt(companyId)];
 }

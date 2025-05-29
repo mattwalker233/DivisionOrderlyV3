@@ -1,6 +1,9 @@
-import Link from "next/link"
+'use client';
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { stateData } from "@/lib/state-data"
+import Link from "next/link"
 
 export default function HomePage() {
   return (
@@ -14,7 +17,7 @@ export default function HomePage() {
           </p>
           <div className="flex gap-4 justify-center">
             <Button asChild size="lg">
-              <Link href="/dashboard">Get Started</Link>
+              <Link href="#states">Get Started</Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
               <Link href="/about">Learn More</Link>
@@ -23,110 +26,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Quick Actions */}
-      <section className="container mx-auto py-12 px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <Card className="border-blue-200 hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-2 h-12 w-12 text-blue-500">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </div>
-              <CardTitle>Upload Document</CardTitle>
-              <CardDescription>Upload a division order document for AI-powered extraction</CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Button asChild className="w-full">
-                <Link href="/upload">Start Upload</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-green-200 hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-2 h-12 w-12 text-green-500">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <ellipse cx="12" cy="5" rx="9" ry="3" />
-                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-                </svg>
-              </div>
-              <CardTitle>View Dashboard</CardTitle>
-              <CardDescription>View all extracted division orders and manage your data</CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Button variant="outline" asChild className="w-full">
-                <Link href="/dashboard">View Dashboard</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-purple-200 hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-2 h-12 w-12 text-purple-500">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
-                </svg>
-              </div>
-              <CardTitle>Manage by State</CardTitle>
-              <CardDescription>Organize division orders by state and company</CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Button variant="outline" className="w-full" disabled>
-                Coming Soon
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* States Grid */}
+      {/* States Grid */}
+      <section id="states" className="container mx-auto py-12 px-4">
         <h2 className="text-3xl font-bold text-center mb-8">Select a State to Begin</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            { code: "TX", name: "Texas", companies: 12, description: "Permian Basin & Eagle Ford Shale" },
-            { code: "NM", name: "New Mexico", companies: 8, description: "Delaware Basin & San Juan Basin" },
-            { code: "OK", name: "Oklahoma", companies: 10, description: "SCOOP/STACK & Anadarko Basin" },
-            { code: "ND", name: "North Dakota", companies: 6, description: "Bakken Formation" },
-            { code: "LA", name: "Louisiana", companies: 7, description: "Haynesville Shale" },
-            { code: "PA", name: "Pennsylvania", companies: 5, description: "Marcellus Shale" },
-          ].map((state) => (
+          {stateData.map((state) => (
             <Card key={state.code} className="overflow-hidden hover:shadow-lg transition-shadow">
               <CardHeader className="bg-primary/5 pb-4">
                 <div className="flex justify-between items-center">
@@ -141,21 +45,23 @@ export default function HomePage() {
               </CardHeader>
               <CardContent className="pt-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">{state.companies} Companies</span>
-                  <Button variant="ghost" size="icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
+                  <span className="text-sm text-muted-foreground">{state.companies.length} Companies</span>
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href={`/states/${state.code.toLowerCase()}/companies`}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </Link>
                   </Button>
                 </div>
               </CardContent>
@@ -214,27 +120,7 @@ export default function HomePage() {
               Start extracting and managing your division orders today with our AI-powered platform.
             </p>
             <Button size="lg" variant="secondary" asChild>
-              <Link href="/upload">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-2 h-4 w-4"
-                >
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
-                </svg>
-                Get Started Today
-              </Link>
+              <Link href="#states">Get Started Today</Link>
             </Button>
           </div>
         </div>

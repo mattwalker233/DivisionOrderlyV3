@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processDocument } from '@/lib/document-processor';
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,14 +16,16 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const result = await processDocument(buffer);
+    // Only import pdf-parse in server environment
+    const pdfParse = (await import('pdf-parse')).default;
+    const data = await pdfParse(buffer);
     
-    return NextResponse.json(result);
+    return NextResponse.json({ text: data.text });
   } catch (error) {
-    console.error('Error processing document:', error);
+    console.error('Error extracting text:', error);
     return NextResponse.json(
-      { error: 'Failed to process document' },
+      { error: 'Failed to extract text from PDF' },
       { status: 500 }
     );
   }
-}
+} 
