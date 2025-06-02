@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { processDocument } from "@/lib/textract-service"
+import { extractDocumentText } from "@/lib/ocr-processor"
+import { extractFields } from "@/lib/ocr-processor"
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,21 +13,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields: file and stateCode" }, { status: 400 })
     }
 
-    // Convert file to buffer
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
     try {
-      // Process the document with Textract
+      // Process the document with OCR
       console.log(`Processing ${file.name} (${file.type}) for state ${stateCode}`)
-      const extractedData = await processDocument(buffer)
+      const extractedText = await extractDocumentText(file)
+      const extractedData = extractFields(extractedText, stateCode)
 
       // Return the extracted data
       return NextResponse.json({
         success: true,
-        extractedText: extractedData.text,
-        confidence: extractedData.confidence,
-        formFields: extractedData.formFields
+        extractedText,
+        ...extractedData
       })
     } catch (processingError) {
       console.error("Error processing document:", processingError)
