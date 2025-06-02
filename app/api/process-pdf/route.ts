@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { extractDocumentText } from "@/lib/ocr-processor"
-import { extractFields } from "@/lib/ocr-processor"
+import { processDocument, cleanup } from "@/lib/ocr-service"
+import { extractFields } from "@/lib/field-extractor"
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,8 +16,13 @@ export async function POST(request: NextRequest) {
     try {
       // Process the document with OCR
       console.log(`Processing ${file.name} (${file.type}) for state ${stateCode}`)
-      const extractedText = await extractDocumentText(file)
+      const extractedText = await processDocument(file)
+      
+      // Extract fields from the text
       const extractedData = extractFields(extractedText, stateCode)
+
+      // Clean up OCR worker
+      await cleanup()
 
       // Return the extracted data
       return NextResponse.json({
@@ -27,6 +32,9 @@ export async function POST(request: NextRequest) {
       })
     } catch (processingError) {
       console.error("Error processing document:", processingError)
+      
+      // Make sure to clean up even if there's an error
+      await cleanup()
 
       return NextResponse.json(
         {
@@ -39,6 +47,9 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error("Error in API route:", error)
+    
+    // Make sure to clean up even if there's an error
+    await cleanup()
 
     return NextResponse.json(
       {
