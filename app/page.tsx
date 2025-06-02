@@ -44,10 +44,9 @@ export default function HomePage() {
                 <CardDescription>{state.description}</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">{state.companies.length} Companies</span>
+                <div className="flex justify-end">
                   <Button variant="ghost" size="icon" asChild>
-                    <Link href={`/states/${state.code.toLowerCase()}/companies`}>
+                    <Link href={`/states/${state.code.toLowerCase()}/division-orders`}>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
@@ -77,11 +76,11 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             <Card>
               <CardHeader>
-                <CardTitle>AI Document Processing</CardTitle>
+                <CardTitle>Multi-Well Support</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Automatically extract key information from division order documents using advanced AI technology.
+                  Handle multiple wells in a single division order while maintaining shared properties across wells.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -97,11 +96,11 @@ export default function HomePage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Dashboard Analytics</CardTitle>
+                <CardTitle>AI Document Processing</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Comprehensive dashboard to track and manage all your division orders in one place.
+                  Automatically extract key information from division order documents using advanced AI technology.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -117,7 +116,7 @@ export default function HomePage() {
               Ready to Streamline Your Division Order Management?
             </h2>
             <p className="max-w-[600px] text-primary-foreground/80 md:text-xl">
-              Start extracting and managing your division orders today with our AI-powered platform.
+              Start managing your multi-well division orders today with our state-specific, AI-powered platform.
             </p>
             <Button size="lg" variant="secondary" asChild>
               <Link href="#states">Get Started Today</Link>

@@ -18,6 +18,8 @@ export function getDefaultCounty(stateCode: string): string {
     OK: "Kingfisher County",
     ND: "McKenzie County",
     LA: "Caddo Parish",
+    CO: "Weld County",
+    WY: "Campbell County"
   }
   return countyMap[stateCode] || "Sample County"
 }

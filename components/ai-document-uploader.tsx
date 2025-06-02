@@ -1,14 +1,15 @@
 "use client"
 
-import { AdvancedDocumentProcessor } from "./advanced-document-processor"
+import AdvancedDocumentProcessor from "./advanced-document-processor"
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Upload, FileText, AlertCircle, ArrowRight, Scan, Database } from "lucide-react"
+import { Upload, FileText, AlertCircle, Brain } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 
 interface AIDocumentUploaderProps {
   stateCode: string
@@ -59,8 +60,14 @@ export function AIDocumentUploader({ stateCode, stateName, companyId, companyNam
     }
   }
 
-  const handleViewCompany = () => {
-    router.push(`/states/${stateCode.toLowerCase()}/companies/${companyId}`)
+  const handleProcessingComplete = (result: { success: boolean; message: string; data: any }) => {
+    if (result.success) {
+      router.push(`/states/${stateCode.toLowerCase()}/companies/${companyId}`)
+    }
+  }
+
+  const handleProcessingError = (error: any) => {
+    setError(error.message || "An error occurred while processing the document")
   }
 
   return (
@@ -68,8 +75,7 @@ export function AIDocumentUploader({ stateCode, stateName, companyId, companyNam
       <Alert variant="default" className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900">
         <AlertCircle className="h-4 w-4 text-blue-500 dark:text-blue-400" />
         <AlertDescription className="text-blue-700 dark:text-blue-300">
-          Upload your division order document to automatically process it. The system will convert the PDF to text using
-          Tesseract OCR, then extract key information with Azure AI Document Intelligence.
+          Upload your division order document to automatically process it. The system will extract key information using Claude AI.
         </AlertDescription>
       </Alert>
 
@@ -129,37 +135,17 @@ export function AIDocumentUploader({ stateCode, stateName, companyId, companyNam
             </Button>
           </div>
 
-          <div className="flex justify-center py-4">
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-              <div className="flex items-center">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600">
-                  <Scan className="w-4 h-4" />
-                </div>
-                <span className="ml-2">Tesseract OCR</span>
-              </div>
-              <ArrowRight className="w-4 h-4" />
-              <div className="flex items-center">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-100 text-cyan-600">
-                  <Database className="w-4 h-4" />
-                </div>
-                <span className="ml-2">Azure AI</span>
-              </div>
-              <ArrowRight className="w-4 h-4" />
-              <div className="flex items-center">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <span className="ml-2">Dashboard</span>
-              </div>
-            </div>
+          <div className="flex items-center">
+            <Badge variant="secondary" className="text-xs">
+              <Brain className="h-3 w-3 mr-1" />
+              <span className="ml-2">Claude AI</span>
+            </Badge>
           </div>
 
           <AdvancedDocumentProcessor
             file={file}
-            stateCode={stateCode}
-            stateName={stateName}
-            companyId={companyId}
-            companyName={companyName}
+            onComplete={handleProcessingComplete}
+            onError={handleProcessingError}
           />
         </div>
       )}

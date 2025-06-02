@@ -22,13 +22,15 @@ export async function POST(request: NextRequest) {
     const order = await db.createDivisionOrder({
       fileName,
       uploadDate: new Date().toISOString(),
-      wellName: extractedData.wellName || "Unknown Well",
       operator: extractedData.operator || "Unknown Operator",
-      county: extractedData.county || "Unknown County",
-      royaltyInterest: extractedData.royaltyInterest || 0,
-      tractAcres: extractedData.tractAcres || 0,
-      ownerName: extractedData.ownerName || "Unknown Owner",
+      entity: extractedData.entity || "Unknown Entity",
       effectiveDate: extractedData.effectiveDate || new Date().toISOString(),
+      county: extractedData.county || "Unknown County",
+      wells: extractedData.wells || [{
+        wellName: "Unknown Well",
+        propertyDescription: "No description provided"
+      }],
+      preparedDate: new Date().toISOString(),
       confidence: extractedData.confidence || 0,
     })
 

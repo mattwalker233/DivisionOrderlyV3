@@ -3,13 +3,13 @@
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import { FileUploader } from "@/components/file-uploader"
-import { AdvancedDocumentProcessor } from "@/components/advanced-document-processor"
+import AdvancedDocumentProcessor from "@/components/advanced-document-processor"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getStateNameByCode } from "@/lib/state-data"
 
 export default function CompanyUploadPage() {
   const params = useParams()
-  const stateCode = params.state as string
+  const stateCode = (params.state as string).toUpperCase()
   const companyId = params.companyId as string
   const stateName = getStateNameByCode(stateCode) || "Unknown State"
   const companyName = companyId
@@ -48,7 +48,7 @@ export default function CompanyUploadPage() {
       </Card>
 
       {!selectedFile ? (
-        <FileUploader onFileSelected={handleFileSelected} />
+        <FileUploader onFileSelect={handleFileSelected} />
       ) : (
         <AdvancedDocumentProcessor
           file={selectedFile}

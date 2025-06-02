@@ -100,6 +100,8 @@ export function AutoExtraction({
       OH: "Belmont County",
       WV: "Doddridge County",
       LA: "Caddo Parish",
+      CO: "Weld County",
+      WY: "Campbell County"
     }
 
     const county = countyMap[stateCode] || "Unknown County"
@@ -129,34 +131,13 @@ export function AutoExtraction({
         totalTractAcreage: 80,
         averageRoyaltyRate: 85,
       },
-      tractSize: {
-        value: "320 acres",
-        confidence: 80,
-      },
-      royaltyInterest: {
-        value: "18.75%",
-        confidence: 85,
-      },
-      sectionNumber: {
-        value: "Section 1",
-        confidence: 85,
-      },
-      propertyDescription: {
-        value: "Section 1, Township 26S, Range 32E",
-        confidence: 85,
-      },
-      entity: {
-        value: "Sample Owner LLC",
-        confidence: 85,
-      },
-      effectiveDate: {
-        value: "01/15/2023",
-        confidence: 85,
-      },
-      preparedDate: {
-        value: "01/10/2023",
-        confidence: 85,
-      },
+      tractSize: "320 acres",
+      royaltyInterest: "18.75%",
+      sectionNumber: "Section 1",
+      propertyDescription: "Section 1, Township 26S, Range 32E",
+      entity: "Sample Owner LLC",
+      effectiveDate: "01/15/2023",
+      preparedDate: "01/10/2023"
     }
   }
 

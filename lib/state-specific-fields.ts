@@ -4,86 +4,56 @@ interface StateFieldDefinition {
   fields: Array<{
     key: string
     label: string
+    required: boolean
+    validation?: RegExp
   }>
-  sampleFields: Record<string, any>
-  sampleCounty: string
-  sampleAPI: string
   textDescription: string
   formatNotes: string
-  validationErrors?: string[]
 }
 
 const stateFields: Record<string, StateFieldDefinition> = {
   // New Mexico
   NM: {
     fields: [
-      { key: "section", label: "Section" },
-      { key: "township", label: "Township" },
-      { key: "range", label: "Range" },
-      { key: "meridian", label: "Meridian" },
-      { key: "unitName", label: "Unit Name" },
-      { key: "divisionOrderNumber", label: "Division Order Number" },
-      { key: "ocdWellID", label: "OCD Well ID" },
-      { key: "newMexicoStateLeaseNumber", label: "New Mexico State Lease Number" },
-      { key: "blmLeaseNumber", label: "BLM Lease Number" },
+      { key: "section", label: "Section", required: true },
+      { key: "township", label: "Township", required: true },
+      { key: "range", label: "Range", required: true },
+      { key: "meridian", label: "Meridian", required: true },
+      { key: "unitName", label: "Unit Name", required: false },
+      { key: "divisionOrderNumber", label: "Division Order Number", required: true },
+      { key: "ocdWellID", label: "OCD Well ID", required: true },
+      { key: "newMexicoStateLeaseNumber", label: "New Mexico State Lease Number", required: false },
+      { key: "blmLeaseNumber", label: "BLM Lease Number", required: false }
     ],
-    sampleFields: {
-      section: "Section 14",
-      township: "Township 18S",
-      range: "Range 32E",
-      meridian: "New Mexico Principal Meridian",
-      unitName: "Permian Basin Unit",
-      divisionOrderNumber: "NM-DO-2023-1456",
-      ocdWellID: "NM-WELL-12345",
-      newMexicoStateLeaseNumber: "NM-LEASE-67890",
-      blmLeaseNumber: "BLM-LEASE-54321",
-      legalDescription: "Section 14, Township 18S, Range 32E, New Mexico Principal Meridian, Lea County, New Mexico",
-    },
-    sampleCounty: "Lea County",
-    sampleAPI: "30-025-45678",
-    textDescription: "Section 14, Township 18S, Range 32E",
-    formatNotes:
-      "New Mexico division orders require Section, Township, and Range information. The New Mexico Principal Meridian should be specified.",
+    textDescription: "Section, Township, Range format with New Mexico Principal Meridian",
+    formatNotes: "New Mexico division orders require Section, Township, and Range information. The New Mexico Principal Meridian should be specified."
   },
 
   // Texas
   TX: {
     fields: [
-      { key: "section", label: "Section" },
-      { key: "block", label: "Block" },
-      { key: "survey", label: "Survey" },
-      { key: "abstract", label: "Abstract" },
-      { key: "railroadCommissionID", label: "Railroad Commission ID" },
-      { key: "texasSeveranceTaxID", label: "Texas Severance Tax ID" },
-      { key: "texasLeaseNumber", label: "Texas Lease Number" },
+      { key: "section", label: "Section", required: true },
+      { key: "block", label: "Block", required: true },
+      { key: "survey", label: "Survey", required: true },
+      { key: "abstract", label: "Abstract", required: true },
+      { key: "railroadCommissionID", label: "Railroad Commission ID", required: true },
+      { key: "texasSeveranceTaxID", label: "Texas Severance Tax ID", required: false },
+      { key: "texasLeaseNumber", label: "Texas Lease Number", required: false }
     ],
-    sampleFields: {
-      section: "Section 36",
-      block: "Block 12",
-      survey: "PSL Survey",
-      abstract: "Abstract 123",
-      railroadCommissionID: "12345",
-      texasSeveranceTaxID: "TX-STAX-67890",
-      texasLeaseNumber: "TX-LEASE-54321",
-      legalDescription: "The East Half (E/2) of Section 36, Block 12, PSL Survey, Abstract 123, Reeves County, Texas",
-    },
-    sampleCounty: "Reeves County",
-    sampleAPI: "42-389-45678",
-    textDescription: "Section 36, Block 12, PSL Survey, Abstract 123",
-    formatNotes:
-      "Texas division orders typically include Section, Block, and Survey information. Abstract numbers are required for proper legal description.",
+    textDescription: "Section, Block, Survey, and Abstract format",
+    formatNotes: "Texas division orders typically include Section, Block, and Survey information. Abstract numbers are required for proper legal description."
   },
 
   // Oklahoma
   OK: {
     fields: [
-      { key: "section", label: "Section" },
-      { key: "township", label: "Township" },
-      { key: "range", label: "Range" },
-      { key: "spotting", label: "Spotting" },
-      { key: "quarterSection", label: "Quarter Section" },
-      { key: "occWellID", label: "OCC Well ID" },
-      { key: "oklahomaTaxID", label: "Oklahoma Tax ID" },
+      { key: "section", label: "Section", required: true },
+      { key: "township", label: "Township", required: true },
+      { key: "range", label: "Range", required: true },
+      { key: "spotting", label: "Spotting", required: true },
+      { key: "quarterSection", label: "Quarter Section", required: true },
+      { key: "occWellID", label: "OCC Well ID", required: true },
+      { key: "oklahomaTaxID", label: "Oklahoma Tax ID", required: true },
     ],
     sampleFields: {
       section: "Section 23",
@@ -105,13 +75,13 @@ const stateFields: Record<string, StateFieldDefinition> = {
   // North Dakota
   ND: {
     fields: [
-      { key: "section", label: "Section" },
-      { key: "township", label: "Township" },
-      { key: "range", label: "Range" },
-      { key: "quarterSection", label: "Quarter Section" },
-      { key: "spacing", label: "Spacing" },
-      { key: "ndicWellID", label: "NDIC Well ID" },
-      { key: "northDakotaLeaseNumber", label: "North Dakota Lease Number" },
+      { key: "section", label: "Section", required: true },
+      { key: "township", label: "Township", required: true },
+      { key: "range", label: "Range", required: true },
+      { key: "quarterSection", label: "Quarter Section", required: true },
+      { key: "spacing", label: "Spacing", required: true },
+      { key: "ndicWellID", label: "NDIC Well ID", required: true },
+      { key: "northDakotaLeaseNumber", label: "North Dakota Lease Number", required: true },
     ],
     sampleFields: {
       section: "Section 18",
@@ -135,11 +105,11 @@ const stateFields: Record<string, StateFieldDefinition> = {
   // Colorado
   CO: {
     fields: [
-      { key: "section", label: "Section" },
-      { key: "township", label: "Township" },
-      { key: "range", label: "Range" },
-      { key: "cogccWellID", label: "COGCC Well ID" },
-      { key: "coloradoStateLeaseNumber", label: "Colorado State Lease Number" },
+      { key: "section", label: "Section", required: true },
+      { key: "township", label: "Township", required: true },
+      { key: "range", label: "Range", required: true },
+      { key: "cogccWellID", label: "COGCC Well ID", required: true },
+      { key: "coloradoStateLeaseNumber", label: "Colorado State Lease Number", required: true },
     ],
     sampleFields: {
       section: "Section 5",
@@ -159,14 +129,14 @@ const stateFields: Record<string, StateFieldDefinition> = {
   // Ohio
   OH: {
     fields: [
-      { key: "tract", label: "Tract" },
-      { key: "lot", label: "Lot" },
-      { key: "township", label: "Township" },
-      { key: "quarterTownship", label: "Quarter Township" },
-      { key: "taxParcelID", label: "Tax Parcel ID" },
-      { key: "odnrWellID", label: "ODNR Well ID" },
-      { key: "ohioLeaseNumber", label: "Ohio Lease Number" },
-      { key: "ohioSeveranceTaxID", label: "Ohio Severance Tax ID" },
+      { key: "tract", label: "Tract", required: true },
+      { key: "lot", label: "Lot", required: true },
+      { key: "township", label: "Township", required: true },
+      { key: "quarterTownship", label: "Quarter Township", required: true },
+      { key: "taxParcelID", label: "Tax Parcel ID", required: true },
+      { key: "odnrWellID", label: "ODNR Well ID", required: true },
+      { key: "ohioLeaseNumber", label: "Ohio Lease Number", required: true },
+      { key: "ohioSeveranceTaxID", label: "Ohio Severance Tax ID", required: true },
     ],
     sampleFields: {
       tract: "Tract 22",
@@ -189,12 +159,12 @@ const stateFields: Record<string, StateFieldDefinition> = {
   // West Virginia
   WV: {
     fields: [
-      { key: "tract", label: "Tract" },
-      { key: "township", label: "Township" },
-      { key: "range", label: "Range" },
-      { key: "wvdepWellAPINumber", label: "WVDEP Well API Number" },
-      { key: "westVirginiaLeaseNumber", label: "West Virginia Lease Number" },
-      { key: "westVirginiaSeveranceTaxID", label: "West Virginia Severance Tax ID" },
+      { key: "tract", label: "Tract", required: true },
+      { key: "township", label: "Township", required: true },
+      { key: "range", label: "Range", required: true },
+      { key: "wvdepWellAPINumber", label: "WVDEP Well API Number", required: true },
+      { key: "westVirginiaLeaseNumber", label: "West Virginia Lease Number", required: true },
+      { key: "westVirginiaSeveranceTaxID", label: "West Virginia Severance Tax ID", required: true },
     ],
     sampleFields: {
       tract: "Tract 30",
@@ -215,14 +185,14 @@ const stateFields: Record<string, StateFieldDefinition> = {
   // Pennsylvania
   PA: {
     fields: [
-      { key: "tract", label: "Tract" },
-      { key: "township", label: "Township" },
-      { key: "warrantName", label: "Warrant Name" },
-      { key: "taxParcelID", label: "Tax Parcel ID" },
-      { key: "deedBook", label: "Deed Book" },
-      { key: "padepWellAPINumber", label: "PA DEP Well API Number" },
-      { key: "pennsylvaniaLeaseNumber", label: "Pennsylvania Lease Number" },
-      { key: "pennsylvaniaWellPermitNumber", label: "Pennsylvania Well Permit Number" },
+      { key: "tract", label: "Tract", required: true },
+      { key: "township", label: "Township", required: true },
+      { key: "warrantName", label: "Warrant Name", required: true },
+      { key: "taxParcelID", label: "Tax Parcel ID", required: true },
+      { key: "deedBook", label: "Deed Book", required: true },
+      { key: "padepWellAPINumber", label: "PA DEP Well API Number", required: true },
+      { key: "pennsylvaniaLeaseNumber", label: "Pennsylvania Lease Number", required: true },
+      { key: "pennsylvaniaWellPermitNumber", label: "Pennsylvania Well Permit Number", required: true },
     ],
     sampleFields: {
       tract: "Tract 45",
@@ -245,11 +215,11 @@ const stateFields: Record<string, StateFieldDefinition> = {
   // Louisiana
   LA: {
     fields: [
-      { key: "section", label: "Section" },
-      { key: "township", label: "Township" },
-      { key: "range", label: "Range" },
-      { key: "parish", label: "Parish" },
-      { key: "unitDesignation", label: "Unit Designation" },
+      { key: "section", label: "Section", required: true },
+      { key: "township", label: "Township", required: true },
+      { key: "range", label: "Range", required: true },
+      { key: "parish", label: "Parish", required: true },
+      { key: "unitDesignation", label: "Unit Designation", required: true },
     ],
     sampleFields: {
       section: "Section 4",
@@ -265,8 +235,37 @@ const stateFields: Record<string, StateFieldDefinition> = {
     formatNotes:
       "Louisiana division orders use Section, Township, and Range, but refer to counties as 'parishes'. Unit designations are often included for unitized fields.",
   },
+
+  // Wyoming
+  WY: {
+    fields: [
+      { key: "section", label: "Section", required: true },
+      { key: "township", label: "Township", required: true },
+      { key: "range", label: "Range", required: true },
+      { key: "quarterSection", label: "Quarter Section", required: false },
+      { key: "wogccPermitNumber", label: "WOGCC Permit Number", required: true },
+      { key: "wyomingLeaseNumber", label: "Wyoming Lease Number", required: false },
+      { key: "federalUnitName", label: "Federal Unit Name", required: false }
+    ],
+    sampleFields: {
+      section: "Section 12",
+      township: "Township 45N",
+      range: "Range 72W",
+      quarterSection: "NE/4",
+      wogccPermitNumber: "WY-WELL-12345",
+      wyomingLeaseNumber: "WY-LEASE-67890",
+      federalUnitName: "Buffalo Federal Unit",
+      legalDescription: "Section 12, Township 45N, Range 72W, Campbell County, Wyoming"
+    },
+    sampleCounty: "Campbell County",
+    sampleAPI: "49-005-45678",
+    textDescription: "Section 12, Township 45N, Range 72W",
+    formatNotes: "Wyoming division orders use Section, Township, and Range. WOGCC Permit Numbers are required for well identification. Federal Unit Names are important for federal leases."
+  }
 }
 
 export function getStateSpecificFields(stateCode: string): StateFieldDefinition {
   return stateFields[stateCode] || stateFields.TX // Default to Texas if state not found
 }
+
+export { stateFields, type StateFieldDefinition };

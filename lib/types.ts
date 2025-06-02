@@ -3,30 +3,52 @@ import type React from "react"
 // Division Order Types
 export interface DivisionOrder {
   id: string
-  fileName: string
-  uploadDate: string
-  wellName: string
-  propertyDescription: string
+  fileName?: string
+  uploadDate?: string
+  // Common properties shared across wells
+  operator: string
   entity: string
-  decimalInterest: number | string
   effectiveDate: string
-  preparedDate: string
+  county: string
+  state: string
+  status?: 'pending' | 'processing' | 'completed' | 'error'
+  // Array of wells that share the common properties
+  wells: Well[]
+  preparedDate?: string
   extractedData?: ExtractedData
+  notes?: string
 }
 
 export interface ExtractedData {
-  wellName: string
-  operator: string
+  ownerNames: string[]
+  wellNames: string[]
   county: string
-  royaltyInterest: number
-  tractAcres: number
-  ownerName: string
-  effectiveDate: string
-  confidence: number
-  rawData?: any
+  operator?: string
+  totalTractAcreage: number
+  averageRoyaltyRate: number
+  sectionBreakdowns: Array<{
+    sectionNumber: string
+    netAcres: number
+    grossAcres: number
+    royaltyInterest: number
+    calculatedRoyalty: number
+    confidenceScore: number
+  }>
+  allocationValid: boolean
+  confidenceScores: {
+    ownerNames: number
+    wellNames: number
+    county: number
+    totalTractAcreage: number
+    averageRoyaltyRate: number
+  }
+  tractSize: string
+  royaltyInterest: string
+  sectionNumber: string
   propertyDescription?: string
+  entity?: string
+  effectiveDate?: string
   preparedDate?: string
-  additionalDetails?: Record<string, any>
 }
 
 export interface SectionBreakdown {
@@ -84,7 +106,6 @@ export interface ApiResponse<T> {
 
 // Environment Status Types
 export interface EnvironmentStatus {
-  azureConfigured: boolean
   endpoint?: string
   apiKey?: string
   lastChecked: string
@@ -182,10 +203,9 @@ export interface Company {
 }
 
 export interface Well {
-  id: string
-  name: string
-  apiNumber?: string
-  location?: string
+  wellName: string
+  propertyDescription: string
+  decimalInterest?: number | string
 }
 
 export interface CompanyDisplayProps {
@@ -243,16 +263,6 @@ export interface PdfPreprocessorProps {
 
 export interface EnvironmentStatusProps {
   onSetupClick?: () => void
-}
-
-export interface AzureAiStatusProps {
-  onSetupClick?: () => void
-}
-
-export interface AzureCredentialsFormProps {
-  onSubmit: (credentials: { endpoint: string; apiKey: string }) => void
-  onCancel?: () => void
-  initialValues?: { endpoint?: string; apiKey?: string }
 }
 
 export interface AutoExtractionProps {

@@ -1,17 +1,22 @@
 // Simple in-memory database for demo purposes
 // In production, use a real database like PostgreSQL, MongoDB, etc.
 
+interface Well {
+  wellName: string
+  propertyDescription: string
+  decimalInterest?: number | string
+}
+
 interface DivisionOrder {
   id: string
   fileName: string
   uploadDate: string
-  wellName: string
   operator: string
-  county: string
-  royaltyInterest: number
-  tractAcres: number
-  ownerName: string
+  entity: string
   effectiveDate: string
+  county: string
+  wells: Well[]
+  preparedDate: string
   confidence: number
 }
 

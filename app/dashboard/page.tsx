@@ -4,12 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, FileSpreadsheet, Check } from "lucide-react"
+import { Search, FileSpreadsheet, Check, PencilIcon, Save, X } from "lucide-react"
 import Link from "next/link"
 import { stateData } from "@/lib/state-data"
 import { useState } from "react"
 import * as XLSX from 'xlsx';
 import { Checkbox } from "@/components/ui/checkbox"
+import { Textarea } from "@/components/ui/textarea"
 
 // Sample division order data for demonstration
 const divisionOrders = [
@@ -22,7 +23,9 @@ const divisionOrders = [
     royaltyInterest: "0.125",
     effectiveDate: "2024-01-15",
     state: "TX",
-    status: "in_process"
+    county: "Midland",
+    status: "in_process",
+    notes: "Waiting on title opinion"
   },
   {
     id: "DO-2024-002",
@@ -33,7 +36,9 @@ const divisionOrders = [
     royaltyInterest: "0.1875",
     effectiveDate: "2024-01-14",
     state: "TX",
-    status: "in_pay"
+    county: "Reeves",
+    status: "title_issue",
+    notes: "Missing heirship documentation"
   },
   {
     id: "DO-2024-003",
@@ -44,32 +49,43 @@ const divisionOrders = [
     royaltyInterest: "0.25",
     effectiveDate: "2024-01-13",
     state: "NM",
-    status: "not_received"
+    county: "Lea",
+    status: "contact_operator",
+    notes: "Need updated division order form"
   },
 ];
 
 export default function DashboardPage() {
   const [selectedState, setSelectedState] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [orders, setOrders] = useState(divisionOrders);
+  const [editingNote, setEditingNote] = useState<string | null>(null);
+  const [noteTexts, setNoteTexts] = useState<Record<string, string>>({});
 
-  // Filter orders based on state, search term, and status
-  const filteredOrders = orders
-    .filter(order => selectedState === "all" || order.state === selectedState)
-    .filter(order => selectedStatus === "all" || order.status === selectedStatus)
-    .filter(order => {
-      if (!searchTerm) return true;
-      const search = searchTerm.toLowerCase();
-      return (
-        order.operator.toLowerCase().includes(search) ||
-        order.entity.toLowerCase().includes(search) ||
-        order.wellName.toLowerCase().includes(search) ||
-        order.propertyDescription.toLowerCase().includes(search) ||
-        order.royaltyInterest.includes(search) ||
-        order.effectiveDate.includes(search)
-      );
-    });
+  // Filter orders based on state and status
+  const getFilteredOrders = (statusFilter: string = selectedStatus) => {
+    return orders
+      .filter(order => selectedState === "all" || order.state === selectedState)
+      .filter(order => statusFilter === "all" || order.status === statusFilter);
+  };
+
+  // Clear filters
+  const clearFilters = () => {
+    setSelectedState("all");
+    setSelectedStatus("all");
+  };
+
+  // Status display helper
+  const getStatusDisplay = (status: string) => {
+    const statusMap: { [key: string]: { label: string; color: string } } = {
+      in_process: { label: "In Process", color: "bg-blue-50 text-blue-700" },
+      in_pay: { label: "In Pay", color: "bg-green-50 text-green-700" },
+      not_received: { label: "Not Received", color: "bg-gray-50 text-gray-700" },
+      title_issue: { label: "Title Issue", color: "bg-red-50 text-red-700" },
+      contact_operator: { label: "Contact Operator", color: "bg-yellow-50 text-yellow-700" }
+    };
+    return statusMap[status] || { label: status, color: "bg-gray-50 text-gray-700" };
+  };
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
     setOrders(prevOrders =>
@@ -79,9 +95,39 @@ export default function DashboardPage() {
     );
   };
 
+  const handleNoteEdit = (orderId: string, currentNote: string) => {
+    setEditingNote(orderId);
+    setNoteTexts(prev => ({ ...prev, [orderId]: currentNote }));
+  };
+
+  const handleNoteSave = (orderId: string) => {
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
+        order.id === orderId ? { ...order, notes: noteTexts[orderId] || "" } : order
+      )
+    );
+    setEditingNote(null);
+  };
+
+  const handleNoteChange = (orderId: string, value: string) => {
+    setNoteTexts(prev => ({ ...prev, [orderId]: value }));
+  };
+
+  const handleNoteKeyDown = (e: React.KeyboardEvent, orderId: string) => {
+    // Save on Ctrl+Enter or Cmd+Enter
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleNoteSave(orderId);
+    }
+    // Cancel on Escape
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setEditingNote(null);
+    }
+  };
+
   const handleExportToExcel = () => {
-    // Prepare data for export
-    const exportData = filteredOrders.map(order => ({
+    const exportData = getFilteredOrders().map(order => ({
       'ID': order.id,
       'Operator': order.operator,
       'Entity': order.entity,
@@ -89,61 +135,127 @@ export default function DashboardPage() {
       'Property Description': order.propertyDescription,
       'Royalty Interest': order.royaltyInterest,
       'Effective Date': order.effectiveDate,
-      'State': order.state
+      'State': order.state,
+      'County': order.county,
+      'Status': getStatusDisplay(order.status).label,
+      'Notes': order.notes
     }));
 
-    // Create worksheet
     const ws = XLSX.utils.json_to_sheet(exportData);
-    
-    // Create workbook
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Division Orders');
-    
-    // Generate Excel file and trigger download
     XLSX.writeFile(wb, `division_orders_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
+  const OrdersTable = ({ orders }: { orders: typeof divisionOrders }) => (
+    <div className="rounded-md border">
+      <div className="p-4">
+        <div className="grid grid-cols-9 gap-4 font-medium text-sm">
+          <div>Status</div>
+          <div>Operator</div>
+          <div>Entity</div>
+          <div>Well/Property</div>
+          <div>Property Description</div>
+          <div>Royalty Interest</div>
+          <div>Effective Date</div>
+          <div>County</div>
+          <div>Notes</div>
+        </div>
+      </div>
+      <div className="divide-y">
+        {orders.map((order) => (
+          <div key={order.id} className="grid grid-cols-9 gap-4 p-4 hover:bg-muted/50">
+            <div className="flex gap-2">
+              <select
+                value={order.status}
+                onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                className={`text-xs border rounded px-1.5 py-0.5 ${getStatusDisplay(order.status).color} min-w-[100px] focus:outline-none focus:ring-1 focus:ring-blue-500`}
+              >
+                <option value="in_process">In Process</option>
+                <option value="in_pay">In Pay</option>
+                <option value="not_received">Not Received</option>
+                <option value="title_issue">Title Issue</option>
+                <option value="contact_operator">Contact Operator</option>
+              </select>
+            </div>
+            <div>{order.operator}</div>
+            <div>{order.entity}</div>
+            <div>{order.wellName}</div>
+            <div>{order.propertyDescription}</div>
+            <div>{order.royaltyInterest}</div>
+            <div>{order.effectiveDate}</div>
+            <div>{order.county}</div>
+            <div className="relative">
+              {editingNote === order.id ? (
+                <div className="flex gap-2">
+                  <Textarea
+                    value={noteTexts[order.id] || ""}
+                    onChange={(e) => handleNoteChange(order.id, e.target.value)}
+                    onKeyDown={(e) => handleNoteKeyDown(e, order.id)}
+                    className="min-h-[60px] text-sm resize-none overflow-hidden"
+                    placeholder="Add a note..."
+                    autoFocus
+                    onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
+                    style={{
+                      height: 'auto',
+                      minHeight: '60px',
+                      maxHeight: '200px'
+                    }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      target.style.height = `${target.scrollHeight}px`;
+                    }}
+                  />
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleNoteSave(order.id)}
+                      className="px-2"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingNote(null)}
+                      className="px-2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2 items-start">
+                  <div className="flex-1 whitespace-pre-wrap">{order.notes || "No notes"}</div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleNoteEdit(order.id, order.notes || "")}
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+        {orders.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            No division orders found matching your criteria
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Documents</CardDescription>
-            <CardTitle className="text-3xl">24</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Active States</CardDescription>
-            <CardTitle className="text-3xl">{stateData.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Companies</CardDescription>
-            <CardTitle className="text-3xl">
-              {stateData.reduce((total, state) => total + state.companies.length, 0)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Processing Time</CardDescription>
-            <CardTitle className="text-3xl">2.4s</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-
-      {/* Division Orders Table with Tabs */}
       <Card>
         <CardHeader>
           <div className="flex flex-col space-y-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex justify-between items-center">
               <div>
                 <CardTitle>Division Orders</CardTitle>
                 <CardDescription>
@@ -152,125 +264,57 @@ export default function DashboardPage() {
                     : `Division orders for ${stateData.find(s => s.code === selectedState)?.name || selectedState}`}
                 </CardDescription>
               </div>
-              <div className="flex gap-2 items-center">
-                <div className="relative w-full md:w-96">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Search division orders..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleExportToExcel}
-                  title="Export to Excel"
-                >
-                  <FileSpreadsheet className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="flex gap-2 flex-wrap">
               <Button
-                variant={selectedState === "all" ? "default" : "outline"}
-                onClick={() => setSelectedState("all")}
-                size="sm"
+                variant="outline"
+                size="icon"
+                onClick={handleExportToExcel}
+                title="Export to Excel"
               >
-                All States
+                <FileSpreadsheet className="h-4 w-4" />
               </Button>
-              {stateData.map((state) => (
-                <Button
-                  key={state.code}
-                  variant={selectedState === state.code ? "default" : "outline"}
-                  onClick={() => setSelectedState(state.code)}
-                  size="sm"
-                >
-                  {state.name}
-                </Button>
-              ))}
+            </div>
+
+            <div className="flex gap-4">
+              <select
+                className="border rounded p-2 min-w-[200px]"
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
+              >
+                <option value="all">All States</option>
+                {stateData.map(state => (
+                  <option key={state.code} value={state.code}>
+                    {state.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="border rounded p-2 min-w-[200px]"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                <option value="all">All Statuses</option>
+                <option value="in_process">In Process</option>
+                <option value="in_pay">In Pay</option>
+                <option value="not_received">Not Received</option>
+                <option value="title_issue">Title Issue</option>
+                <option value="contact_operator">Contact Operator</option>
+              </select>
+
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </Button>
             </div>
           </div>
         </CardHeader>
+
         <CardContent>
-          <Tabs defaultValue="all" className="w-full" value={selectedStatus} onValueChange={setSelectedStatus}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="in_process">In Process</TabsTrigger>
-              <TabsTrigger value="in_pay">In Pay</TabsTrigger>
-              <TabsTrigger value="not_received">Not Received</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all" className="mt-4">
-              <div className="rounded-md border">
-                <div className="p-4">
-                  <div className="grid grid-cols-8 gap-4 font-medium text-sm">
-                    <div>Status</div>
-                    <div>Operator</div>
-                    <div>Entity</div>
-                    <div>Well/Property</div>
-                    <div>Property Description</div>
-                    <div>Royalty Interest</div>
-                    <div>Effective Date</div>
-                    <div>Actions</div>
-                  </div>
-                </div>
-                <div className="divide-y">
-                  {filteredOrders.map((order) => (
-                    <div key={order.id} className="grid grid-cols-8 gap-4 p-4 hover:bg-muted/50">
-                      <div className="flex gap-2">
-                        <select
-                          value={order.status}
-                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                          className="text-sm border rounded px-2 py-1"
-                        >
-                          <option value="in_process">In Process</option>
-                          <option value="in_pay">In Pay</option>
-                          <option value="not_received">Not Received</option>
-                        </select>
-                      </div>
-                      <div>{order.operator}</div>
-                      <div>{order.entity}</div>
-                      <div>{order.wellName}</div>
-                      <div>{order.propertyDescription}</div>
-                      <div>{order.royaltyInterest}</div>
-                      <div>{order.effectiveDate}</div>
-                      <div>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/orders/${order.id}`}>View</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  {filteredOrders.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No division orders found matching your criteria
-                    </div>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="in_process">
-              <div className="rounded-md border">
-                {/* Same table structure as "all" tab but filtered for in_process status */}
-                {/* ... */}
-              </div>
-            </TabsContent>
-            <TabsContent value="in_pay">
-              <div className="rounded-md border">
-                {/* Same table structure as "all" tab but filtered for in_pay status */}
-                {/* ... */}
-              </div>
-            </TabsContent>
-            <TabsContent value="not_received">
-              <div className="rounded-md border">
-                {/* Same table structure as "all" tab but filtered for not_received status */}
-                {/* ... */}
-              </div>
-            </TabsContent>
-          </Tabs>
+          <OrdersTable orders={getFilteredOrders(selectedStatus)} />
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
